@@ -22,7 +22,7 @@ else
     log_message "Virtual environment not found, attempting to create one"
     python3 -m venv "$SCRIPT_DIR/venv"
     source "$SCRIPT_DIR/venv/bin/activate"
-    pip install fastapi uvicorn passlib python-multipart
+    pip install -r "$SCRIPT_DIR/requirements.txt"
     log_message "Virtual environment created and packages installed"
 fi
 
@@ -31,4 +31,9 @@ cd "$SCRIPT_DIR"
 
 # Start the FastAPI server
 log_message "Starting FastAPI server"
-exec python app.py
+
+# Use PORT environment variable if set, otherwise use default
+PORT=${PORT:-27843}
+log_message "Using port: $PORT"
+
+exec python app.py --port $PORT

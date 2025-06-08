@@ -42,7 +42,7 @@ if [ ! -d "$BACKEND_DIR/venv" ]; then
     
     echo "📦 Installing required packages..."
     source "$BACKEND_DIR/venv/bin/activate"
-    pip install fastapi uvicorn passlib python-multipart
+    pip install -r "$BACKEND_DIR/requirements.txt"
     deactivate
     echo "✅ Virtual environment setup complete."
 fi
@@ -59,6 +59,7 @@ Type=simple
 User=$CURRENT_USER
 WorkingDirectory=$BACKEND_DIR
 ExecStart=/bin/bash $BACKEND_DIR/startup.sh
+Environment="PORT=27843"
 Restart=always
 RestartSec=5
 

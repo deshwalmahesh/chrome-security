@@ -2,6 +2,8 @@ import subprocess
 import os
 import re
 import glob
+import sys
+import socket
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -68,8 +70,70 @@ def save_profiles_config(config):
     with open(CONFIG_FILE, 'w') as f:
         json.dump(config, f, indent=2)
 
-# Chrome executable name
-CHROME_EXECUTABLE = "google-chrome-stable"  # Or "chromium-browser", etc.
+# Detect Chrome executable
+def find_chrome_executable():
+    """Find the Chrome executable on the system"""
+    # Common Chrome executable names by platform
+    if sys.platform == "darwin":  # macOS
+        chrome_paths = [
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+            "/Applications/Chromium.app/Contents/MacOS/Chromium"
+        ]
+    elif sys.platform.startswith("linux"):
+        chrome_paths = [
+            "google-chrome",
+            "google-chrome-stable",
+            "chrome",
+            "chromium",
+            "chromium-browser"
+        ]
+    else:  # Windows or other
+        chrome_paths = [
+            "chrome.exe",
+            "google-chrome.exe",
+            "chromium.exe"
+        ]
+        
+    # For macOS and specific paths
+    for path in chrome_paths:
+        if os.path.isabs(path) and os.path.exists(path) and os.access(path, os.X_OK):
+            return path
+    
+    # For commands in PATH
+    for cmd in chrome_paths:
+        try:
+            # Use 'which' on Unix-like systems
+            if sys.platform != "win32":
+                result = subprocess.run(["which", cmd], capture_output=True, text=True)
+                if result.returncode == 0 and result.stdout.strip():
+                    return result.stdout.strip()
+            # For Windows, we'd need a different approach
+            else:
+                result = subprocess.run(["where", cmd], capture_output=True, text=True)
+                if result.returncode == 0 and result.stdout.strip():
+                    return result.stdout.strip().splitlines()[0]
+        except Exception:
+            continue
+    
+    # Default fallback
+    return "google-chrome-stable"
+
+# Find an available port if the default is in use
+def find_available_port(default_port=27843, max_attempts=10):
+    """Find an available port, starting with the default"""
+    port = default_port
+    for _ in range(max_attempts):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.bind(("127.0.0.1", port))
+                return port
+        except OSError:
+            port += 1
+    return default_port  # Return default if all attempts fail
+
+# Set Chrome executable and port
+CHROME_EXECUTABLE = find_chrome_executable()
+DEFAULT_PORT = 27843
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
@@ -309,6 +373,7 @@ async def change_password(password_data: PasswordChange):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Chrome Profile Security Backend")
     parser.add_argument("--hash-password", type=str, help="Generate a hash for the given password and exit.")
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help=f"Port to run the server on (default: {DEFAULT_PORT})")
     args = parser.parse_args()
 
     if args.hash_password:
@@ -320,5 +385,13 @@ if __name__ == "__main__":
         # Load the latest profiles configuration
         profiles_config = load_profiles_config()
         print("Starting FastAPI server for Chrome Profile Security...")
+        print(f"Using Chrome executable: {CHROME_EXECUTABLE}")
         print("Loaded profile configurations:", list(profiles_config.values()))
-        uvicorn.run("app:app", host="127.0.0.1", port=27843, reload=True)
+        
+        # Find an available port if the specified one is in use
+        port = find_available_port(args.port)
+        if port != args.port:
+            print(f"Warning: Port {args.port} is in use. Using port {port} instead.")
+        
+        print(f"Server running at http://127.0.0.1:{port}")
+        uvicorn.run("app:app", host="127.0.0.1", port=port, reload=True)
