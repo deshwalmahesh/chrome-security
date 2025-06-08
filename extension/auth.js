@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentProfile = result.currentProfileName || 'Default';
             
             try {
-                const response = await fetch('http://127.0.0.1:8765/auth/login', {
+                const response = await fetch('http://127.0.0.1:27843/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

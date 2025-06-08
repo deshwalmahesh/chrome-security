@@ -1,7 +1,7 @@
 // Check if the server is running
 async function isServerRunning() {
   try {
-    const response = await fetch('http://127.0.0.1:8765/health', {
+    const response = await fetch('http://127.0.0.1:27843/health', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ function isAuthenticated() {
 // Verify token with the server
 async function verifyToken(token) {
   try {
-    const response = await fetch(`http://127.0.0.1:8765/auth/verify?token=${token}`);
+    const response = await fetch(`http://127.0.0.1:27843/auth/verify?token=${token}`);
     if (response.ok) {
       const data = await response.json();
       if (data.valid) {
@@ -92,6 +92,34 @@ async function verifyToken(token) {
   } catch (error) {
     console.error("Error verifying token:", error);
     // Don't invalidate on connection errors - server might be starting
+    return false;
+  }
+}
+
+// Lock the profile by removing authentication status and tokens
+async function lockProfile() {
+  try {
+    return new Promise((resolve) => {
+      chrome.storage.local.set({ profileAuthenticated: false }, () => {
+        if (chrome.runtime.lastError) {
+          console.error("Error locking profile:", chrome.runtime.lastError);
+          resolve(false);
+          return;
+        }
+        
+        chrome.storage.local.remove(['authToken', 'tokenExpiry'], () => {
+          if (chrome.runtime.lastError) {
+            console.error("Error removing auth tokens:", chrome.runtime.lastError);
+            resolve(false);
+            return;
+          }
+          console.log("Profile locked successfully");
+          resolve(true);
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Unexpected error in lockProfile:", error);
     return false;
   }
 }
@@ -124,28 +152,37 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 chrome.windows.onCreated.addListener(async (window) => {
   // When a new window is created, check its active tab
   setTimeout(async () => { // Allow tab to be created
-    // First check if server is running
-    const serverRunning = await isServerRunning();
-    if (!serverRunning) {
-      console.log("Security verification service not running, skipping verification check on new window");
-      return;
-    }
-    
-    // Always lock the profile when a new window is created
-    await lockProfile();
-    
-    const authenticated = await isAuthenticated();
-    if (!authenticated) {
-      chrome.tabs.query({ active: true, windowId: window.id }, (tabs) => {
-        if (tabs && tabs.length > 0) {
-          const tab = tabs[0];
-          if (tab.url && 
-              !tab.url.startsWith(chrome.runtime.getURL("")) && 
-              !tab.url.startsWith("chrome://")) {
-            redirectToAuth(tab.id);
+    try {
+      // First check if server is running
+      const serverRunning = await isServerRunning();
+      if (!serverRunning) {
+        console.log("Security verification service not running, skipping verification check on new window");
+        return;
+      }
+      
+      // Always lock the profile when a new window is created
+      await lockProfile();
+      
+      const authenticated = await isAuthenticated();
+      if (!authenticated) {
+        chrome.tabs.query({ active: true, windowId: window.id }, (tabs) => {
+          if (chrome.runtime.lastError) {
+            console.error("Error querying tabs:", chrome.runtime.lastError);
+            return;
           }
-        }
-      });
+          
+          if (tabs && tabs.length > 0) {
+            const tab = tabs[0];
+            if (tab.url && 
+                !tab.url.startsWith(chrome.runtime.getURL("")) && 
+                !tab.url.startsWith("chrome://")) {
+              redirectToAuth(tab.id);
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error handling new window creation:", error);
     }
   }, 100); // Small delay
 });
@@ -156,7 +193,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   
   // Detect current Chrome profile
   try {
-    const response = await fetch('http://127.0.0.1:8765/profiles');
+    const response = await fetch('http://127.0.0.1:27843/profiles');
     if (response.ok) {
       const data = await response.json();
       const chromeProfiles = data.chrome_profiles || [];
@@ -171,18 +208,25 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     console.error("Error detecting Chrome profile:", error);
   }
   
-  // Lock the current profile immediately
-  chrome.storage.local.set({ profileAuthenticated: false }, () => {
-    console.log("Profile locked on installation.");
-    chrome.storage.local.remove(['authToken', 'tokenExpiry']);
+  try {
+    // Lock the profile automatically using the lockProfile function
+    await lockProfile();
+    console.log("Profile locked on extension install/update.");
     
-    // Redirect to auth page immediately to set up password
+    // Redirect to auth page immediately
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length > 0) {
+      if (chrome.runtime.lastError) {
+        console.error("Error querying tabs:", chrome.runtime.lastError);
+        return;
+      }
+      
+      if (tabs && tabs.length > 0) {
         redirectToAuth(tabs[0].id);
       }
     });
-  });
+  } catch (error) {
+    console.error("Error during extension installation/update:", error);
+  }
 });
 
 // Run when browser starts (extension is loaded)
@@ -191,7 +235,7 @@ chrome.runtime.onStartup.addListener(async () => {
   
   // Detect current Chrome profile
   try {
-    const response = await fetch('http://127.0.0.1:8765/profiles');
+    const response = await fetch('http://127.0.0.1:27843/profiles');
     if (response.ok) {
       const data = await response.json();
       const chromeProfiles = data.chrome_profiles || [];
@@ -199,6 +243,10 @@ chrome.runtime.onStartup.addListener(async () => {
       // Ask the Identity API which profile this extension is running in
       const currentProfile = await detectCurrentProfile(chromeProfiles);
       chrome.storage.local.set({ currentProfileName: currentProfile }, () => {
+        if (chrome.runtime.lastError) {
+          console.error("Error setting profile name:", chrome.runtime.lastError);
+          return;
+        }
         console.log(`Current Chrome profile detected: ${currentProfile}`);
       });
     }
@@ -206,18 +254,25 @@ chrome.runtime.onStartup.addListener(async () => {
     console.error("Error detecting Chrome profile:", error);
   }
   
-  // Lock the profile automatically
-  chrome.storage.local.set({ profileAuthenticated: false }, () => {
+  try {
+    // Lock the profile automatically using the lockProfile function
+    await lockProfile();
     console.log("Profile locked on browser start.");
-    chrome.storage.local.remove(['authToken', 'tokenExpiry']);
     
     // Redirect to auth page immediately
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length > 0) {
+      if (chrome.runtime.lastError) {
+        console.error("Error querying tabs:", chrome.runtime.lastError);
+        return;
+      }
+      
+      if (tabs && tabs.length > 0) {
         redirectToAuth(tabs[0].id);
       }
     });
-  });
+  } catch (error) {
+    console.error("Error during browser startup:", error);
+  }
 });
 
 // Message listener for logout and other messages

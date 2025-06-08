@@ -321,4 +321,4 @@ if __name__ == "__main__":
         profiles_config = load_profiles_config()
         print("Starting FastAPI server for Chrome Profile Security...")
         print("Loaded profile configurations:", list(profiles_config.values()))
-        uvicorn.run("app:app", host="127.0.0.1", port=8765, reload=True)
+        uvicorn.run("app:app", host="127.0.0.1", port=27843, reload=True)

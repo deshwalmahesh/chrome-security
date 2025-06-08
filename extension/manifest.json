@@ -16,7 +16,7 @@
     "identity.email"
   ],
   "host_permissions": [
-    "http://127.0.0.1:8765/*"
+    "http://127.0.0.1:27843/*"
   ],
   "background": {
     "service_worker": "background.js"

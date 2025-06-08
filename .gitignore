@@ -1,5 +1,31 @@
+# Secrets and configuration
 *.secret
 *.env
 profiles_secret_config.json
-__pycache__
-*.pyc
+chrome-security.service
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# System files
+.DS_Store
+Thumbs.db
