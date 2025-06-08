@@ -40,24 +40,42 @@ The system consists of two main components:
 
 ### Setting Up the Backend
 
-1. Clone this repository:
+#### Option 1: For Users (Distribution)
+
+1. Download or extract the release package:
    ```
-   git clone <repository-url>
+   unzip chrome-security.zip
    cd chrome-security
    ```
 
-2. Run the improved setup script which will:
-   - Create a virtual environment if it doesn't exist
-   - Install all required dependencies
-   - Generate a service file with your current user and paths
-   - Offer to install the service for you
+2. Run the setup script with sudo (required for service installation):
    ```
    cd backend
    chmod +x setup_service.sh
    sudo ./setup_service.sh
    ```
    
-   The script will guide you through the setup process with interactive prompts.
+   The script will automatically:
+   - Create a Python virtual environment if needed
+   - Install all required dependencies
+   - Configure the service with correct paths
+   - Install and start the service
+   - Verify the service is running properly
+
+#### Option 2: For Developers
+
+1. Clone this repository:
+   ```
+   git clone <repository-url>
+   cd chrome-security
+   ```
+
+2. Run the setup script:
+   ```
+   cd backend
+   chmod +x setup_service.sh
+   sudo ./setup_service.sh
+   ```
 
 ### Setting Up the Extension
 
@@ -88,35 +106,34 @@ The system consists of two main components:
 
 #### Using Systemd (Recommended for Linux)
 
-The improved setup script handles all the necessary steps to make the service run automatically in the background, even after system restarts:
+The setup script automatically handles all the necessary steps to make the service run on system startup:
 
-1. Run the setup script with sudo privileges:
+1. When you run the setup script with sudo privileges:
    ```
    cd /path/to/chrome-security/backend
    chmod +x setup_service.sh
    sudo ./setup_service.sh
    ```
 
-   This enhanced script will:
-   - Create a service file with your current username and correct paths
-   - Check for and install required dependencies
+   The script will automatically:
+   - Create a service file with the correct paths and your username
+   - Install all required dependencies
    - Set up a Python virtual environment if needed
-   - Offer to install or update the service automatically
-   - Verify that the service is properly enabled to run at startup
-   - Confirm that the service will run in the background after system restart
-
-2. When prompted, choose 'y' to install the service. This will:
-   - Copy the service file to the system directory
-   - Enable the service to start automatically at boot time
+   - Install and enable the service to run at system startup
    - Start the service immediately
+   - Verify that the service is running properly
 
-3. The script will confirm that the service is active and will run automatically after restart.
+2. The service is configured with:
+   - Automatic restart if it crashes
+   - Proper dependency management (starts after network is available)
+   - Logging to help with troubleshooting
 
-4. If you need to manually update an existing service later:
+3. To update an existing installation, simply run the setup script again:
    ```
    sudo ./setup_service.sh
    ```
-   And select 'y' when prompted to update the service.
+   
+   The script will detect the existing service, stop it, update it, and restart it automatically.
 
 ## Service Management Commands
 
@@ -180,9 +197,20 @@ If the extension shows "Security verification service not running":
    sudo systemctl start chrome-security.service
    ```
 
-3. Check the logs for errors:
+3. Check the service logs for errors:
    ```
-   sudo journalctl -u chrome-security.service
+   sudo journalctl -u chrome-security.service -n 50 --no-pager
+   ```
+
+4. Check the application logs:
+   ```
+   cat /path/to/chrome-security/backend/service.log
+   ```
+
+5. If the service keeps stopping, try running the setup script again to fix any path issues:
+   ```
+   cd /path/to/chrome-security/backend
+   sudo ./setup_service.sh
    ```
 
 ### Authentication Issues
@@ -190,15 +218,36 @@ If the extension shows "Security verification service not running":
 If you're having trouble authenticating:
 
 1. Make sure you're using the correct password for the profile
-2. Check if the backend service is running and accessible
+2. Check if the backend service is running and accessible by visiting http://127.0.0.1:27843/health in your browser
 3. Try restarting the browser and the backend service
+4. Check the service logs for any authentication errors
 
 ### Virtual Environment Issues
 
 If you encounter issues with the Python virtual environment:
 
-1. Delete the `venv` directory in the backend folder
-2. Run the setup script again to recreate it:
+1. The improved setup script should automatically create or repair the virtual environment
+2. If you still have issues, you can manually recreate it:
+   ```
+   cd /path/to/chrome-security/backend
+   rm -rf venv
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install fastapi uvicorn passlib python-multipart
+   ```
+3. Then run the setup script again to reinstall the service:
+   ```
+   sudo ./setup_service.sh
+   ```
+
+### Distribution Issues
+
+If you're distributing this tool to others and they're having issues:
+
+1. Make sure they have Python 3.7+ installed
+2. Ensure they run the setup script with sudo privileges
+3. Check that the Chrome extension is properly loaded
+4. Verify that port 27843 is not being used by another application
    ```
    sudo ./setup_service.sh
    ```

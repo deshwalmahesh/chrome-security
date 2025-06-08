@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# Check if running as root and warn if not
+# Check if running as root
 if [ "$(id -u)" -ne 0 ]; then
-    echo "⚠️  Warning: This script is not running as root. Some operations might fail."
-    echo "Consider running with sudo if you encounter permission issues."
-    echo
+    echo "❌ This script must be run as root (sudo). Please run with sudo."
+    exit 1
 fi
 
 # Get the current user (even if script is run with sudo)
@@ -14,9 +13,14 @@ else
     CURRENT_USER=$(whoami)
 fi
 
-# Get the absolute path to the project directory
-PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" &> /dev/null && pwd )"
-BACKEND_DIR="$PROJECT_DIR/backend"
+# Get the absolute path to the project directory - works regardless of where the script is run from
+SCRIPT_PATH="$(readlink -f "$0")"
+BACKEND_DIR="$(dirname "$SCRIPT_PATH")"
+PROJECT_DIR="$(dirname "$BACKEND_DIR")"
+
+# Ensure we're using the actual path, not a symlink path
+BACKEND_DIR="$(cd "$BACKEND_DIR" && pwd)"
+PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)"
 
 echo "📋 Setting up Chrome Security Service..."
 echo "User: $CURRENT_USER"
@@ -55,7 +59,8 @@ Type=simple
 User=$CURRENT_USER
 WorkingDirectory=$BACKEND_DIR
 ExecStart=/bin/bash $BACKEND_DIR/startup.sh
-Restart=on-failure
+Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
@@ -64,47 +69,34 @@ EOF
 echo "✅ Service file created at $BACKEND_DIR/chrome-security.service"
 echo
 
-# Check if the service is already installed
-if [ -f "/etc/systemd/system/chrome-security.service" ]; then
-    echo "🔄 Service is already installed. Would you like to update it? (y/n)"
-    read -r update_service
-    
-    if [[ $update_service =~ ^[Yy]$ ]]; then
-        echo "🔄 Updating service..."
-        cp "$BACKEND_DIR/chrome-security.service" "/etc/systemd/system/"
-        systemctl daemon-reload
-        systemctl restart chrome-security.service
-        echo "✅ Service updated and restarted."
-    fi
-else
-    echo "🔧 Service is not installed. Would you like to install it now? (y/n)"
-    read -r install_service
-    
-    if [[ $install_service =~ ^[Yy]$ ]]; then
-        echo "🔧 Installing service..."
-        cp "$BACKEND_DIR/chrome-security.service" "/etc/systemd/system/"
-        systemctl daemon-reload
-        systemctl enable chrome-security.service
-        systemctl start chrome-security.service
-        echo "✅ Service installed and started."
-    else
-        echo "ℹ️  To install the service later, run:"
-        echo "   sudo cp $BACKEND_DIR/chrome-security.service /etc/systemd/system/"
-        echo "   sudo systemctl daemon-reload"
-        echo "   sudo systemctl enable chrome-security.service"
-        echo "   sudo systemctl start chrome-security.service"
-    fi
+# Stop the service if it's running
+if systemctl is-active --quiet chrome-security.service; then
+    echo "🛑 Stopping existing service..."
+    systemctl stop chrome-security.service
 fi
 
-# Check current service status if it exists
+# Install or update the service
+echo "🔧 Installing/updating service..."
+cp "$BACKEND_DIR/chrome-security.service" "/etc/systemd/system/"
+systemctl daemon-reload
+systemctl enable chrome-security.service
+systemctl start chrome-security.service
+
+# Check current service status
 echo
 echo "🔍 Checking service status..."
 if systemctl is-active --quiet chrome-security.service; then
     echo "✅ Service status: ACTIVE (running in background)"
     echo "   The service will automatically start when you reboot your system."
-elif systemctl is-enabled --quiet chrome-security.service; then
-    echo "⚠️  Service status: ENABLED but not running"
-    echo "   To start the service now, run: sudo systemctl start chrome-security.service"
 else
-    echo "ℹ️  Service status: NOT INSTALLED or DISABLED"
+    echo "❌ Service failed to start. Checking logs..."
+    journalctl -u chrome-security.service --no-pager -n 20
 fi
+
+echo
+echo "✅ Setup complete! The Chrome Security service is now configured to start automatically on boot."
+echo "   You can check its status anytime with: sudo systemctl status chrome-security.service"
+echo "   To restart it manually: sudo systemctl restart chrome-security.service"
+echo "   To view logs: sudo journalctl -u chrome-security.service -f"
+echo
+echo "🔒 Your Chrome Security service is now ready to use!"
