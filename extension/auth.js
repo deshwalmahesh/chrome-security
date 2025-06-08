@@ -7,11 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Always load the detected profile name immediately
     chrome.storage.local.get(['currentProfileName', 'extensionInitialized'], (result) => {
         const profileName = result.currentProfileName || 'Default';
-        profileLabel.textContent = `Profile: ${profileName}`;
+        profileLabel.textContent = `MMLP Enterprise Profile: ${profileName}`;
 
         // First-run banner
         if (!result.extensionInitialized) {
-            messageArea.textContent = `Please set a password for profile “${profileName}”.`;
+            messageArea.textContent = `Please set a security password for company profile "${profileName}".`;
             messageArea.className = 'info';
             chrome.storage.local.set({ extensionInitialized: true });
         }
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show current profile name if available
             chrome.storage.local.get(['currentProfileName'], (result) => {
                 if (result.currentProfileName) {
-                    messageArea.textContent = `Enter password to access this profile`;//: ${result.currentProfileName}`;
+                    messageArea.textContent = `Please authenticate to access this company-managed profile`;
                     messageArea.className = 'info';
                 }
             });

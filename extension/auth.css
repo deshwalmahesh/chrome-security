@@ -1,56 +1,118 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f2f5;
     margin: 0;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    color: #333;
 }
 
 .auth-container {
     background-color: white;
     padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    width: 350px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    width: 400px;
     text-align: center;
 }
 
+.company-branding {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.company-logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 10px;
+}
+
+.company-branding h1 {
+    margin: 0;
+    color: #1a3a7c;
+    font-weight: 500;
+    font-size: 24px;
+}
+
+.security-section {
+    padding: 20px 0;
+    border-top: 1px solid #eaeaea;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.security-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 15px;
+}
+
 h2 {
-    color: #333;
+    color: #1a3a7c;
     margin-top: 0;
+    font-weight: 500;
+    font-size: 20px;
+}
+
+.profile-label {
+    font-weight: 500;
+    color: #555;
+    margin: 10px 0;
+}
+
+.auth-message {
+    color: #555;
+    margin-bottom: 20px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.input-group {
+    margin: 20px 0;
 }
 
 input[type="password"] {
     width: 100%;
-    padding: 10px;
-    margin: 15px 0;
+    padding: 12px;
+    margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: 4px;
     box-sizing: border-box;
     font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+input[type="password"]:focus {
+    border-color: #1a3a7c;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(26, 58, 124, 0.2);
 }
 
 button {
-    background-color: #4285f4;
+    background-color: #1a3a7c;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 12px 20px;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
     width: 100%;
+    font-weight: 500;
+    transition: background-color 0.3s;
 }
 
 button:hover {
-    background-color: #3367d6;
+    background-color: #0a1f4d;
 }
 
-#messageArea {
+.message {
     margin-top: 15px;
     min-height: 20px;
+    font-size: 14px;
 }
 
 .error {
@@ -64,4 +126,27 @@ button:hover {
 .info {
     color: #1976d2;
     font-style: italic;
+}
+
+.footer {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #777;
+}
+
+.footer p {
+    margin: 5px 0;
+}
+
+.support {
+    font-size: 11px;
+}
+
+.support a {
+    color: #1a3a7c;
+    text-decoration: none;
+}
+
+.support a:hover {
+    text-decoration: underline;
 }

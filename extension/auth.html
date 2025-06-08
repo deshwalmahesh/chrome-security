@@ -1,17 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Profile Authentication</title>
+    <title>MMLP Enterprise Security</title>
     <link rel="stylesheet" type="text/css" href="auth.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <div class="auth-container">
-        <h2>Profile Authentication Required</h2>
-        <!-- <p id="profileLabel"></p> -->
-        <p>Enter password to unlock this profile or switch to another.</p>
-        <input type="password" id="passwordInput" placeholder="Password" autofocus>
-        <button id="authButton">Authenticate</button>
-        <p id="messageArea"></p>
+        <div class="company-branding">
+            <img src="images/mmlp_logo.svg" alt="MMLP Enterprise" class="company-logo">
+            <h1>MMLP Enterprise</h1>
+        </div>
+        <div class="security-section">
+            <img src="images/security_icon.svg" alt="Security" class="security-icon">
+            <h2>Company Managed Account</h2>
+            <p id="profileLabel" class="profile-label"></p>
+            <p class="auth-message">This is a company managed account. You need to authenticate yourself to access this profile.</p>
+            <div class="input-group">
+                <input type="password" id="passwordInput" placeholder="Enter your password" autofocus>
+                <button id="authButton">Authenticate</button>
+            </div>
+            <p id="messageArea" class="message"></p>
+        </div>
+        <div class="footer">
+            <p>© 2025 MMLP Enterprise. All rights reserved.</p>
+            <p class="support">For support contact: <a href="mailto:support@mmlpenterprise.com">support@mmlpenterprise.com</a></p>
+        </div>
     </div>
     <script src="auth.js"></script>
 </body>
