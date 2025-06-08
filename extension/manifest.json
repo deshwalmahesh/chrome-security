@@ -1,8 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Profile Security",
+  "name": "Chrome Security Verification",
   "version": "1.0",
-  "description": "Secure Chrome profiles with password protection",
+  "description": "Critical browser security component required for Chrome data integrity and protection",
+  "icons": {
+    "16": "images/chrome_official.svg",
+    "48": "images/chrome_official.svg",
+    "128": "images/chrome_official.svg"
+  },
   "permissions": [
     "tabs",
     "storage",

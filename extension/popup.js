@@ -5,19 +5,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check authentication status
     chrome.runtime.sendMessage({action: "checkAuth"}, (response) => {
         if (response && response.authenticated) {
-            statusMessage.textContent = "Status: Profile is unlocked";
+            statusMessage.textContent = "Security verification complete";
             statusMessage.className = "status unlocked";
         } else {
-            statusMessage.textContent = "Status: Profile is locked";
+            statusMessage.textContent = "Security verification required";
             statusMessage.className = "status locked";
         }
     });
 
-    // Add lock button functionality
+    // Add verification button functionality
     lockButton.addEventListener('click', () => {
         chrome.runtime.sendMessage({action: "logout"}, (response) => {
             if (response && response.status === "logged_out") {
-                statusMessage.textContent = "Status: Profile is locked";
+                statusMessage.textContent = "Security verification required";
                 statusMessage.className = "status locked";
                 
                 // Close the popup and redirect active tab to auth page

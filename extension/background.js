@@ -109,7 +109,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     // First check if server is running
     const serverRunning = await isServerRunning();
     if (!serverRunning) {
-      console.log("Auth server not running, skipping auth check");
+      console.log("Security verification service not running, skipping verification check");
       return;
     }
 
@@ -127,7 +127,7 @@ chrome.windows.onCreated.addListener(async (window) => {
     // First check if server is running
     const serverRunning = await isServerRunning();
     if (!serverRunning) {
-      console.log("Auth server not running, skipping auth check on new window");
+      console.log("Security verification service not running, skipping verification check on new window");
       return;
     }
     
@@ -187,7 +187,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
 // Run when browser starts (extension is loaded)
 chrome.runtime.onStartup.addListener(async () => {
-  console.log("Browser started, locking profile...");
+  console.log("Browser started, initiating security verification...");
   
   // Detect current Chrome profile
   try {
