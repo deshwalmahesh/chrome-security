@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome Profile Security",
+  "version": "1.0",
+  "description": "Secure Chrome profiles with password protection",
+  "permissions": [
+    "tabs",
+    "storage",
+    "webNavigation",
+    "identity",
+    "identity.email"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8765/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "web_accessible_resources": [{
+    "resources": ["auth.html", "auth.js", "auth.css"],
+    "matches": ["<all_urls>"]
+  }]
+}
