@@ -1,0 +1,5 @@
+*.secret
+*.env
+profiles_secret_config.json
+__pycache__
+*.pyc
