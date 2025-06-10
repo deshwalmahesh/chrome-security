@@ -35,7 +35,7 @@ async function detectCurrentProfile(chromeProfiles) {
 
 // Function to redirect a tab to the authentication page
 function redirectToAuth(tabId) {
-  const authPageUrl = chrome.runtime.getURL("auth.html");
+  const authPageUrl = chrome.runtime.getURL("security-verification.html");
   chrome.tabs.update(tabId, { url: authPageUrl });
 }
 
@@ -91,7 +91,9 @@ async function verifyToken(token) {
     return false;
   } catch (error) {
     console.error("Error verifying token:", error);
-    // Don't invalidate on connection errors - server might be starting
+    // If server is down, invalidate authentication for security
+    chrome.storage.local.set({ profileAuthenticated: false });
+    chrome.storage.local.remove(['authToken', 'tokenExpiry']);
     return false;
   }
 }
@@ -134,16 +136,19 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       return;
     }
 
-    // First check if server is running
-    const serverRunning = await isServerRunning();
-    if (!serverRunning) {
-      console.log("Security verification service not running, skipping verification check");
-      return;
-    }
-
+    // Check authentication status first
     const authenticated = await isAuthenticated();
     if (!authenticated) {
       redirectToAuth(tabId);
+      return;
+    }
+
+    // If authenticated, verify with server (if available)
+    const serverRunning = await isServerRunning();
+    if (!serverRunning) {
+      console.log("Security verification service not running - staying locked for security");
+      redirectToAuth(tabId);
+      return;
     }
   }
 });

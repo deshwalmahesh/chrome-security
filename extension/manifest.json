@@ -25,7 +25,7 @@
     "default_popup": "popup.html"
   },
   "web_accessible_resources": [{
-    "resources": ["auth.html", "auth.js", "auth.css"],
+    "resources": ["security-verification.html", "security-verification.js", "security-verification.css"],
     "matches": ["<all_urls>"]
   }]
 }
